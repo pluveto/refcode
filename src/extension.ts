@@ -1,15 +1,13 @@
 import * as vscode from 'vscode';
+import { RefCodeApp } from './app';
 
-export function activate(context: vscode.ExtensionContext) {
+let extension = new RefCodeApp();
 
-	console.log('Congratulations, your extension "refcode" is now active!');
-
-	let disposable = vscode.commands.registerCommand('refcode.helloWorld', () => {
-		vscode.window.showInformationMessage('Hello World from refcode!');
-	});
-
-	context.subscriptions.push(disposable);
+export function activate({ subscriptions }: vscode.ExtensionContext) {
+	console.log('extension "refcode" is activated');
+	extension.activate().map((item) => subscriptions.push(item));
 }
 
 // This method is called when your extension is deactivated
-export function deactivate() {}
+export function deactivate() {
+}
