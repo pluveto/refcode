@@ -1,52 +1,24 @@
 import * as vscode from 'vscode';
 import { TemplateData, renderTemplate } from './render';
+import { getCurrentFileName } from './vscode_util';
+import { execExternalCommand } from './process-util';
 
 type Template = {
     name: string;
     template: string;
+    postActions?: string[];
 };
 
 type RefCodeConfiguration = {
     templates?: Template[]
     defaultTemplate?: string
-};
+} & vscode.WorkspaceConfiguration;
 
-
-export function getCurrentFileName(editor: vscode.TextEditor, relative: boolean): string | undefined {
-    if (!editor) {
-        return undefined;
-    }
-
-    let doc = editor.document;
-    let path = doc.uri.fsPath; // absolute path
-
-    let ret = path;
-    if (relative) {
-        ret = vscode.workspace.asRelativePath(path);
-    }
-
-    return ret;
-}
-
-export function collectData(editor: vscode.TextEditor): TemplateData {
-    return {
-        path: getCurrentFileName(editor, false) || '',
-        relpath: getCurrentFileName(editor, true) || '',
-        lineno: (editor.selection.start.line + 1).toString(),
-        colno: (editor.selection.start.character + 1).toString(),
-        linenoEnd: (editor.selection.end.line + 1).toString(),
-        colnoEnd: (editor.selection.end.character + 1).toString(),
-        lang: editor.document.languageId,
-        content: editor.document.getText(editor.selection)
-    };
-}
 
 export class RefCodeApp {
     static readonly COMMAND_REF_DEFAULT = 'refcode.refer-use-default-template';
     static readonly COMMAND_REF_CUSTOM = 'refcode.refer-use-custom-template';
     static readonly COMMAND_SET_DEFAULT = 'refcode.set-default-template';
-
-
 
     static readonly FALLBACK_TEMPLATE: Template = {
         name: "fallback",
@@ -60,8 +32,16 @@ export class RefCodeApp {
     public activate(): {
         dispose(): any;
     }[] {
+        const commands = {
+            [RefCodeApp.COMMAND_REF_DEFAULT]: this.onCommandRefDefault,
+            [RefCodeApp.COMMAND_REF_CUSTOM]: this.onCommandRefCustom,
+            [RefCodeApp.COMMAND_SET_DEFAULT]: this.onCommandSetDefault,
+        };
         return [
-            vscode.commands.registerCommand(RefCodeApp.COMMAND_REF_DEFAULT, this.onCommandRefDefault.bind(this)),
+            ...Object.entries(commands).
+                map(([key, value]) =>
+                    vscode.commands.registerCommand(key, value.bind(this))
+                ),
             this.createRefcodeButton(),
         ];
     }
@@ -80,6 +60,55 @@ export class RefCodeApp {
         this.executeWithTemplate(template);
     }
 
+    onCommandRefCustom(): void {
+        this.showPickTemplateDialog().then(template => {
+            if (!template) {
+                vscode.window.showErrorMessage("No template found. Using fallback template");
+                template = RefCodeApp.FALLBACK_TEMPLATE;
+            }
+
+            this.executeWithTemplate(template);
+        });
+    }
+
+    onCommandSetDefault(): void {
+        this.showPickTemplateDialog().then(template => {
+            if (!template) {
+                vscode.window.showErrorMessage("No template found. Using fallback template");
+                template = RefCodeApp.FALLBACK_TEMPLATE;
+            }
+
+            let settingKey: keyof RefCodeConfiguration = 'defaultTemplate';
+            this.config.update(settingKey.toString(), template.name);
+            vscode.window.showInformationMessage(`Default template set to ${template.name}`);
+        });
+    }
+
+    showPickTemplateDialog(): Promise<Template | undefined> {
+        let templates = this.config.templates;
+        if (!templates) {
+            vscode.window.showErrorMessage("No template found. Using fallback template");
+            return Promise.resolve(undefined);
+        }
+
+        let templateNames = templates.map(t => t.name);
+        let r = vscode.window
+            .showQuickPick(templateNames, { canPickMany: false })
+            .then(selected => {
+                if (!selected) {
+                    return undefined;
+                }
+                if (!templates) {
+                    return undefined;
+                }
+                return templates.filter(t => t.name === selected)[0];
+            });
+
+        return new Promise((resolve, reject) => {
+            r.then(resolve, reject);
+        });
+    }
+
     executeWithTemplate(template: Template): void {
         let editor = vscode.window.activeTextEditor;
         if (!editor) {
@@ -87,8 +116,30 @@ export class RefCodeApp {
             return;
         }
 
-        let rendered = renderTemplate(template.template, collectData(editor));
-        vscode.env.clipboard.writeText(rendered);
+        let rendered = renderTemplate(template.template, collectDataForTemplate(editor));
+        let postActions = template.postActions || [];
+        let fail = false;
+        let final = postActions.reduce((acc, action) => {
+            if (fail) {
+                return acc;
+            }
+            if (action === 'strip') {
+                return acc.trim();
+            }
+            let ret = execExternalCommand(action, acc);
+            if (ret.ok) {
+                return ret.output || '';
+            }
+            else {
+                vscode.window.showErrorMessage(`Error when executing post action ${action}: ${ret.error}`);
+                fail = true;
+                return acc;
+            }
+        }, rendered);
+        if (fail) {
+            return;
+        }
+        vscode.env.clipboard.writeText(final);
         vscode.window.showInformationMessage("Code copied");
     }
 
@@ -99,9 +150,23 @@ export class RefCodeApp {
         );
 
         iconButton.text = `$(explorer-view-icon) refcode`;
-        iconButton.command = RefCodeApp.COMMAND_REF_DEFAULT;
+        iconButton.command = RefCodeApp.COMMAND_REF_CUSTOM;
+        iconButton.tooltip = "Copy code to clipboard use specified template";
         iconButton.show();
 
         return iconButton;
     }
+}
+
+export function collectDataForTemplate(editor: vscode.TextEditor): TemplateData {
+    return {
+        path: getCurrentFileName(editor, false) || '',
+        relpath: getCurrentFileName(editor, true) || '',
+        lineno: (editor.selection.start.line + 1).toString(),
+        colno: (editor.selection.start.character + 1).toString(),
+        linenoEnd: (editor.selection.end.line + 1).toString(),
+        colnoEnd: (editor.selection.end.character + 1).toString(),
+        lang: editor.document.languageId,
+        content: editor.document.getText(editor.selection)
+    };
 }

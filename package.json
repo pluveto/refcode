@@ -2,7 +2,7 @@
   "name": "refcode",
   "displayName": "refcode",
   "description": "A lightweight utility providing seamless code copying, formatting, with template and post-process support",
-  "version": "0.0.1",
+  "version": "1.0.0-preview.1",
   "engines": {
     "vscode": "^1.79.0"
   },
@@ -32,19 +32,48 @@
           "default": [
             {
               "name": "markdown classic",
-              "template": "`{relpath}`:\n```{lang}\n{#stripIndent}{content}{/stripIndent}\n```"
+              "template": "`{relpath}`:\n```{lang}\n{#stripIndent}{content}{/stripIndent}\n```",
+              "postActions": []
             }
           ],
           "items": {
             "type": "object",
             "properties": {
               "name": {
-                "type": "string"
+                "type": "string",
+                "description": "The name of the template",
+                "examples": [
+                  "markdown classic"
+                ]
               },
               "template": {
-                "type": "string"
+                "type": "string",
+                "description": "The template string, with placeholders",
+                "examples": [
+                  "Markdown example: `{relpath}`:\n```{lang}\n{#stripIndent}{content}{/stripIndent}\n```",
+                  "{path} is the file path.",
+                  "{relpath} is the relative file path.",
+                  "{outline} is the outline path of it. Like `Foo » useEffect() callback`",
+                  "{lineno} is the starting line number of it.",
+                  "{colno} is the starting column number of it.",
+                  "{linenoEnd} is the ending line number of it.",
+                  "{colnoEnd} is the ending column number of it.",
+                  "{lang} is the language of the code.",
+                  "{content} is the content of it."
+                ]
+              },
+              "postActions": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "The post actions to be applied to the template. Can be a list of path to scripts or commands."
               }
-            }
+            },
+            "required": [
+              "name",
+              "template"
+            ]
           }
         }
       }

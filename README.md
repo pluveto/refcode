@@ -26,6 +26,23 @@ NOTE:
   - If the command exits with a non-zero status or has stderr output,
     the copy operation will be aborted. An error message will be raised, and nothing will be copied.
 
+## Commands
+
+- `refcode.refer-use-default-template`: Copy selected code using the default template.
+- `refcode.refer-use-custom-template`: Copy selected code using a custom template.
+- `refcode.set-default-template`: Set the default template.
+
+## Shortcut
+
+This extension doesn't provide any shortcut by default. You can add a shortcut by yourself.
+
+To set up a shortcut follow these steps:
+
+1. Go to the "File" menu and select "Preferences", then choose "Keyboard Shortcuts" (or use the shortcut `Ctrl+K Ctrl+S`). This will open the Keyboard Shortcuts editor.
+2. On the right-hand side, you will see a search box. Type the name of the command you want to set a shortcut for. For example, if you want to set a shortcut for `refcode.refer-use-default-template`, type "refcode.refer-use-default-template" in the search box. The matching command will appear in the list below the search box.
+3. Click on the "+" icon next to the command name to add a new keybinding. A text input field will appear. Enter your desired shortcut key combination. For example, you can use `Ctrl+Shift+C` for the `refcode.refer-use-default-template` command.
+4. Once you've entered the shortcut, press Enter to save it.
+
 ## License
 
 This extension is released under the MIT License. See the [LICENSE](LICENSE) file for more information.
