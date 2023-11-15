@@ -3,9 +3,12 @@
   "displayName": "refcode",
   "description": "A lightweight utility providing seamless code copying, formatting, with template and post-process support",
   "version": "1.0.0-preview.1",
+  "publisher": "pluveto",
   "engines": {
     "vscode": "^1.79.0"
   },
+  "license": "MIT",
+  "icon": "icon.png",
   "categories": [
     "Other"
   ],
