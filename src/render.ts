@@ -11,18 +11,6 @@ export type TemplateData = {
     content?: string;
 } & { [key: string]: string };
 
-
-// export function renderTemplate(template: string, data: TemplateData) {
-//     const pattern = /{\s*(\w+?)\s*}/g; // {property}
-//     return template.replace(pattern, (_, prop) => {
-//         if (data.hasOwnProperty(prop)) {
-//             let key = prop as keyof TemplateData;
-//             return data[key] || "";
-//         }
-//         return "";
-//     });
-// }
-
 export function stripIndent(text?: string): string {
     if (!text) {
         console.error('stripIndent: text is undefined');
@@ -34,8 +22,9 @@ export function stripIndent(text?: string): string {
         if (line.trim() === '') {
             return min;
         }
-        let mat = line.match(/^\s*/) || [''];
-        let indent = mat[0].length;
+
+        let match = line.match(/^\s*/) || [''];
+        let indent = match[0].length;
         return Math.min(min, indent);
     }, Infinity);
 
