@@ -118,28 +118,23 @@ export class RefCodeApp {
 
         let rendered = renderTemplate(template.template, collectDataForTemplate(editor));
         let postActions = template.postActions || [];
-        let fail = false;
-        let final = postActions.reduce((acc, action) => {
-            if (fail) {
-                return acc;
-            }
+        console.log(postActions);
+
+        for (let action of postActions) {
             if (action === 'strip') {
-                return acc.trim();
+                rendered = rendered.trim();
+                continue;
             }
-            let ret = execExternalCommand(action, acc);
-            if (ret.ok) {
-                return ret.output || '';
-            }
-            else {
+            let ret = execExternalCommand(action, rendered);
+            if (!ret.ok) {
                 vscode.window.showErrorMessage(`Error when executing post action ${action}: ${ret.error}`);
-                fail = true;
-                return acc;
+                return;
+            } else {
+                rendered = ret.output || '';
             }
-        }, rendered);
-        if (fail) {
-            return;
         }
-        vscode.env.clipboard.writeText(final);
+
+        vscode.env.clipboard.writeText(rendered);
         vscode.window.showInformationMessage("Code copied");
     }
 
