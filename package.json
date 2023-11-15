@@ -7,6 +7,10 @@
   "engines": {
     "vscode": "^1.79.0"
   },
+  "repository": {
+		"type": "Github",
+		"url": "https://github.com/pluveto/refcode"
+	},
   "license": "MIT",
   "icon": "icon.png",
   "categories": [
