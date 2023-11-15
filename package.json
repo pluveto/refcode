@@ -2,15 +2,15 @@
   "name": "refcode",
   "displayName": "refcode",
   "description": "A lightweight utility providing seamless code copying, formatting, with template and post-process support",
-  "version": "1.0.0-preview.1",
+  "version": "1.0.0",
   "publisher": "pluveto",
   "engines": {
     "vscode": "^1.79.0"
   },
   "repository": {
-		"type": "Github",
-		"url": "https://github.com/pluveto/refcode"
-	},
+    "type": "Github",
+    "url": "https://github.com/pluveto/refcode"
+  },
   "license": "MIT",
   "icon": "icon.png",
   "categories": [

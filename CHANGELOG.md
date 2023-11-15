@@ -6,6 +6,12 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 
 ## [Unreleased]
 
+## [1.0.0] - 2023-11-15
+
+### Added
+
+- Support post-actions
+
 ## [1.0.0-preview.1] - 2023-11-13
 
 ### Added
