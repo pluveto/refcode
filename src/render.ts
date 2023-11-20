@@ -13,7 +13,6 @@ export type TemplateData = {
 
 export function stripIndent(text?: string): string {
     if (!text) {
-        console.error('stripIndent: text is undefined');
         return '';
     }
 
@@ -33,7 +32,6 @@ export function stripIndent(text?: string): string {
 
 export function strip(text?: string): string {
     if (!text) {
-        console.error('strip: text is undefined');
         return '';
     }
     return text.trim();
@@ -50,6 +48,6 @@ export function renderTemplate(template: string, data: TemplateData): string {
     };
     return Mustache.render(template, { ...data, ...fns }, {}, {
         tags: ['{', '}'],
-        escape: text => text,
+        escape: (text: string) => text,
     });
 }

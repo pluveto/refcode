@@ -6,6 +6,13 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 
 ## [Unreleased]
 
+## [1.0.1] - 2023-11-15
+
+### Fixed
+
+- Broken package
+- Removed unnecessary console log
+
 ## [1.0.0] - 2023-11-15
 
 ### Added

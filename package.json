@@ -2,7 +2,7 @@
   "name": "refcode",
   "displayName": "refcode",
   "description": "A lightweight utility providing seamless code copying, formatting, with template and post-process support",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "publisher": "pluveto",
   "engines": {
     "vscode": "^1.79.0"
