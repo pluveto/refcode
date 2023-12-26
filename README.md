@@ -42,6 +42,8 @@ Here is a list of template variables for the selected code:
 
 ### Post-actions
 
+#### Custom post-actions
+
 Configure the `postActions` option to enable post-actions.
 
 Example:
@@ -79,6 +81,28 @@ You can use any command, even your own, as a post-action. For example, you can u
     ],
 }
 ```
+
+#### Builtin post-actions
+
+- strip: strip the leading and trailing whitespace
+- replace: replace the selected text with the rendered text
+- eval: eval the function defined after the command (like: `eval function foo(input) { return input + 'bar'; }`)
+- no-copy: do not copy the rendered text to the clipboard
+
+You can even use it as a replace engine:
+
+```json
+{
+    "name": "i18n replace",
+    "template": "{content}",
+    "postActions": [
+        "eval function replaceText(input) {  if (input.startsWith('=\"') && input.endsWith('\"')) {    return '={' + 't(\"' + input.substring(2, input.length - 1) + '\")' + '}';  } else {    return 't(\"' + input + '\")';  }}",
+        "writeback"
+    ]
+}
+```
+
+This will replace the selected text with the i18n key.
 
 ## Commands
 

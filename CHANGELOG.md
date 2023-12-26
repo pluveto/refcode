@@ -6,6 +6,12 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 
 ## [Unreleased]
 
+## [1.0.2] - 2023-12-26
+
+### Added
+
+- Support for `eval`, `replace`, `no-copy` post-actions.
+
 ## [1.0.1] - 2023-11-15
 
 ### Fixed
