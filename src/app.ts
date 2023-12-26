@@ -133,6 +133,12 @@ export class RefCodeApp {
                 continue;
             }
 
+            if (action.startsWith("eval")) {
+                const fnStr = action.slice(4).trim();
+                const escapedInput = JSON.stringify(rendered);
+                rendered = eval('(' + fnStr + ')(' + escapedInput + ')');
+            }
+
             // otherwise, it's a command
             let ret = execExternalCommand(action, rendered);
             if (!ret.ok) {
