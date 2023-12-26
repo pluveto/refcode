@@ -7,6 +7,8 @@ type Template = {
     name: string;
     template: string;
     postActions?: string[];
+    multiSelections?: boolean;
+    joinString?: string;
 };
 
 type RefCodeConfiguration = {
@@ -116,9 +118,75 @@ export class RefCodeApp {
             return;
         }
 
+        if (template.multiSelections) {
+            return this.executeWithTemplateSelections(template);
+        }
+
         let rendered = renderTemplate(template.template, collectDataForTemplate(editor));
-        let postActions = template.postActions || [];
-        console.log(postActions);
+        rendered = this.applyPostActions(
+            rendered,
+            editor.selection,
+            template.postActions
+        );
+
+        const postActions = template.postActions || [];
+        if (postActions.includes('replace') || postActions.includes('writeback')) {
+            editor.edit(editBuilder => {
+                editBuilder.replace(editor.selection, rendered);
+            });
+            return;
+        }
+        // if has last action and last action is no-copy
+        if (postActions.length > 0 && postActions[postActions.length - 1] === 'no-copy') {
+            return;
+        }
+
+        vscode.env.clipboard.writeText(rendered);
+        vscode.window.showInformationMessage("Code copied");
+    }
+
+    executeWithTemplateSelections(template: Template): void {
+        let editor = vscode.window.activeTextEditor as vscode.TextEditor;
+        if (!editor) {
+            vscode.window.showErrorMessage("No active editor found");
+            return;
+        }
+
+        let rendereds = collectDataForTemplateSelections(editor).map(d => renderTemplate(template.template, d));
+        rendereds = rendereds.map(
+            (r, i) => this.applyPostActions(
+                r,
+                editor.selections[i],
+                template.postActions
+            )
+        );
+
+        const rendered = rendereds.join(template.joinString || '\n');
+        const postActions = template.postActions || [];
+        // if has replace action, apply all
+        if (postActions.includes('replace') || postActions.includes('writeback')) {
+            editor.edit(editBuilder => {
+                editor.selections.forEach((s,i) => {
+                    editBuilder.replace(s, rendereds[i]);
+                });
+            });
+            return;
+        }
+        // if has last action and last action is no-copy
+        if (postActions.length > 0 && postActions[postActions.length - 1] === 'no-copy') {
+            return;
+        }
+
+        vscode.env.clipboard.writeText(rendered);
+        vscode.window.showInformationMessage("Code copied");
+    }
+
+    applyPostActions(rendered_: string, selection: vscode.Selection, postActions: string[] | undefined) {
+        let rendered = rendered_;
+        let replaceQueue: string[] = [];
+        if (!postActions) {
+            return rendered;
+        }
 
         for (let action of postActions) {
             if (action === 'strip') {
@@ -127,9 +195,6 @@ export class RefCodeApp {
             }
 
             if (action === 'writeback' || action === 'replace') {
-                editor.edit(editBuilder => {
-                    editBuilder.replace(editor.selection, rendered);
-                });
                 continue;
             }
 
@@ -148,19 +213,13 @@ export class RefCodeApp {
             let ret = execExternalCommand(action, rendered);
             if (!ret.ok) {
                 vscode.window.showErrorMessage(`Error when executing post action ${action}: ${ret.error}`);
-                return;
+                return rendered;
             } else {
                 rendered = ret.output || '';
             }
         }
 
-        // if has last action and last action is no-copy
-        if (postActions.length > 0 && postActions[postActions.length - 1] === 'no-copy') {
-            return;
-        }
-
-        vscode.env.clipboard.writeText(rendered);
-        vscode.window.showInformationMessage("Code copied");
+        return rendered;
     }
 
     createRefcodeButton(): vscode.StatusBarItem {
@@ -189,4 +248,18 @@ export function collectDataForTemplate(editor: vscode.TextEditor): TemplateData 
         lang: editor.document.languageId,
         content: editor.document.getText(editor.selection)
     };
+}
+export function collectDataForTemplateSelections(editor: vscode.TextEditor): TemplateData[] {
+    return editor.selections.map(s => {
+        return {
+            path: getCurrentFileName(editor, false) || '',
+            relpath: getCurrentFileName(editor, true) || '',
+            lineno: (s.start.line + 1).toString(),
+            colno: (s.start.character + 1).toString(),
+            linenoEnd: (s.end.line + 1).toString(),
+            colnoEnd: (s.end.character + 1).toString(),
+            lang: editor.document.languageId,
+            content: editor.document.getText(s)
+        };
+    });
 }

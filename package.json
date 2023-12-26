@@ -2,7 +2,7 @@
   "name": "refcode",
   "displayName": "refcode",
   "description": "A lightweight utility providing seamless code copying, formatting, with template and post-process support",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "publisher": "pluveto",
   "engines": {
     "vscode": "^1.79.0"
@@ -75,6 +75,16 @@
                   "type": "string"
                 },
                 "description": "The post actions to be applied to the template. Can be a list of path to scripts or commands."
+              },
+              "multiSelections": {
+                "type": "boolean",
+                "description": "Whether to allow multi-selections. If true, the template will be applied to each selection.",
+                "default": false
+              },
+              "joinString": {
+                "type": "string",
+                "description": "The string to join the results of multi-selections. Only effective when `multiSelections` is true.",
+                "default": "\n"
               }
             },
             "required": [
