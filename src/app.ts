@@ -110,7 +110,7 @@ export class RefCodeApp {
     }
 
     executeWithTemplate(template: Template): void {
-        let editor = vscode.window.activeTextEditor;
+        let editor = vscode.window.activeTextEditor as vscode.TextEditor;
         if (!editor) {
             vscode.window.showErrorMessage("No active editor found");
             return;
@@ -125,6 +125,15 @@ export class RefCodeApp {
                 rendered = rendered.trim();
                 continue;
             }
+
+            if (action === 'writeback') {
+                editor.edit(editBuilder => {
+                    editBuilder.replace(editor.selection, rendered);
+                });
+                continue;
+            }
+
+            // otherwise, it's a command
             let ret = execExternalCommand(action, rendered);
             if (!ret.ok) {
                 vscode.window.showErrorMessage(`Error when executing post action ${action}: ${ret.error}`);
