@@ -126,7 +126,7 @@ export class RefCodeApp {
                 continue;
             }
 
-            if (action === 'writeback') {
+            if (action === 'writeback' || action === 'replace') {
                 editor.edit(editBuilder => {
                     editBuilder.replace(editor.selection, rendered);
                 });
@@ -137,6 +137,11 @@ export class RefCodeApp {
                 const fnStr = action.slice(4).trim();
                 const escapedInput = JSON.stringify(rendered);
                 rendered = eval('(' + fnStr + ')(' + escapedInput + ')');
+                continue;
+            }
+
+            if (action.startsWith("no-copy")) {
+                continue;
             }
 
             // otherwise, it's a command
@@ -147,6 +152,11 @@ export class RefCodeApp {
             } else {
                 rendered = ret.output || '';
             }
+        }
+
+        // if has last action and last action is no-copy
+        if (postActions.length > 0 && postActions[postActions.length - 1] === 'no-copy') {
+            return;
         }
 
         vscode.env.clipboard.writeText(rendered);
